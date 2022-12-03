@@ -1,0 +1,63 @@
+
+# Pour explorer Grpc à travers des ingress nginx (HTTP/2).
+
+> prérequis: on a un minikube (avec addon ingress)
+
+
+Générer les certificats :
+
+```shell
+./cert/gen.sh
+```
+
+Créer le namespace et le secret pour le TLS, puis déployer :
+
+```shell
+kubectl create ns hello
+kubectl -n hello create secret tls hello-tls-secret --key server-key.pem --cert server-cert.pem
+kubectl -n hello apply -f dep/deployment-tls.yaml
+```
+
+Avec un tunnel, en plain text :
+
+```shell
+kubectl port-forward svc/hello -n hello 5555:5555
+grpcurl -plaintext -format json -d '{"name": "Tonton"}' localhost:5555 Greeter/SayHello
+./hello client Tonton --address localhost:5555 --tls=false
+```
+
+Un petit test en utilisant grpCurl (`-insecure`car on est autosigné):
+
+```shell
+$ grpcurl -insecure -format json -d '{"name": "Tonton"}' hello.example.com:443 Greeter/SayHello
+{
+"message": "Hello Tonton"
+}
+```
+
+
+
+Avec le client :
+
+```shell
+$ export GODEBUG=x509sha1=1
+$ ./hello client ZaZa
+Connecting to: hello.example.com:443
+Server response: Hello ZaZa
+```
+
+Si on déploie sans TLS :
+
+```shell
+$ kubectl -n hello apply -f dep/deployment.yaml
+$ ./hello client ZaZa --address hello.example.com:80 --tls=false
+Connecting to: hello.example.com:80
+Error: rpc error: code = Unavailable desc = connection error: desc = "error reading server preface: http2: frame too large"
+```
+
+Littérature :
+- https://kennethjenkins.net/posts/go-nginx-grpc/
+- https://kubernetes.github.io/ingress-nginx/examples/grpc/
+- https://github.com/grpc/grpc-go/blob/master/Documentation/server-reflection-tutorial.md
+- https://pkg.go.dev/google.golang.org/grpc#Server.ServeHTTP
+- https://dev.to/techschoolguru/how-to-secure-grpc-connection-with-ssl-tls-in-go-4ph
