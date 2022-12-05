@@ -1,10 +1,13 @@
 IMAGE_NAME=sandbox-hello
-IMAGE_VERSION=0.0.6
+IMAGE_VERSION=0.0.8
 
 
 format:
 	go fmt ./...
 	go vet ./...
+
+build:
+	go build .
 
 lint:
 	golint ./...

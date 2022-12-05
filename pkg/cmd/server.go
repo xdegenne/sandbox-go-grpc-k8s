@@ -11,12 +11,11 @@ func createServerCmd() *cobra.Command {
 
 	config := server.ServerConfig{}
 
-	server := server.Server{Config: config}
-
 	var serverCmd = &cobra.Command{
 		Use:   "server",
 		Short: "Launch the server",
 		Run: func(cmd *cobra.Command, args []string) {
+			server := server.Server{Config: config}
 			server.Start()
 		},
 	}

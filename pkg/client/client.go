@@ -20,26 +20,35 @@ type Client struct {
 }
 
 type ClientConfig struct {
-	Address string
-	Tls     bool
-	CaCcert string
+	Address  string
+	Tls      bool
+	CaCcert  string
+	TrustAll bool
 }
 
-func loadTLSCredentials(caCertFilePath string) (credentials.TransportCredentials, error) {
-	// Load certificate of the CA who signed server's certificate
-	pemServerCA, err := ioutil.ReadFile("cert/ca-cert.pem")
-	if err != nil {
-		return nil, err
-	}
-
+func (c *Client) loadTLSCredentials() (credentials.TransportCredentials, error) {
+	fmt.Println("Activating TLS")
 	certPool := x509.NewCertPool()
-	if !certPool.AppendCertsFromPEM(pemServerCA) {
-		return nil, fmt.Errorf("failed to add server CA's certificate")
+
+	// Load certificate of the CA who signed server's certificate
+	if c.Config.CaCcert != "" {
+		fmt.Printf("Loading ca cart from %s", c.Config.CaCcert)
+		pemServerCA, err := ioutil.ReadFile(c.Config.CaCcert)
+		if err != nil {
+			return nil, err
+		}
+		if !certPool.AppendCertsFromPEM(pemServerCA) {
+			return nil, fmt.Errorf("Failed to add server CA's certificate")
+		}
 	}
 
 	// Create the credentials and return it
 	config := &tls.Config{
 		RootCAs: certPool,
+	}
+	if c.Config.TrustAll {
+		fmt.Println("Skip verifying CA certs from server")
+		config.InsecureSkipVerify = true
 	}
 
 	return credentials.NewTLS(config), nil
@@ -48,20 +57,16 @@ func loadTLSCredentials(caCertFilePath string) (credentials.TransportCredentials
 func (c *Client) Connect() error {
 	fmt.Printf("Connecting to: %s\n", c.Config.Address)
 
-	opts := []grpc.DialOption{
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-	}
+	opts := []grpc.DialOption{}
 	if c.Config.Tls {
-		tlsCredentials, err := loadTLSCredentials(c.Config.CaCcert)
+		tlsCredentials, err := c.loadTLSCredentials()
 		if err != nil {
 			log.Fatal("cannot load TLS credentials: ", err)
 		}
-
-		opts = []grpc.DialOption{
-			grpc.WithTransportCredentials(tlsCredentials),
-			//grpc.WithUnaryInterceptor(interceptor.Unary()),
-			//grpc.WithStreamInterceptor(interceptor.Stream()),
-		}
+		opts = append(opts, grpc.WithTransportCredentials(tlsCredentials))
+	} else {
+		fmt.Println("No TLS activated")
+		opts = append(opts, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	}
 
 	// establish connection

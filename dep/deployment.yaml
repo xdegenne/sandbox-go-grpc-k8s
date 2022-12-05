@@ -16,7 +16,7 @@ spec:
       securityContext:
         runAsUser: 999
       containers:
-      - image: sandbox-hello:0.0.6
+      - image: sandbox-hello:0.0.8
         imagePullPolicy: IfNotPresent
         name: hello
         command:

@@ -26,8 +26,9 @@ func createClientCmd() *cobra.Command {
 	}
 
 	clientCmd.PersistentFlags().StringVar(&clientConfig.Address, "address", "hello.example.com:443", "The address of the TCP server")
-	clientCmd.PersistentFlags().StringVar(&clientConfig.CaCcert, "ca-cert", "cert/ca-cert.pem", "The path of the CA certificate")
-	clientCmd.PersistentFlags().BoolVar(&clientConfig.Tls, "tls", true, "Activate TLS")
+	clientCmd.PersistentFlags().StringVar(&clientConfig.CaCcert, "ca-cert", "", "The path of the CA certificate")
+	clientCmd.PersistentFlags().BoolVar(&clientConfig.Tls, "tls", false, "Activate TLS")
+	clientCmd.PersistentFlags().BoolVar(&clientConfig.TrustAll, "trust-all", false, "Trust all server, even if self signed certs")
 	return clientCmd
 }
 
