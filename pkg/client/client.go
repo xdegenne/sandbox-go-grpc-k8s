@@ -23,7 +23,7 @@ type ClientConfig struct {
 	Address  string
 	Tls      bool
 	CaCcert  string
-	TrustAll bool
+	Insecure bool
 }
 
 func (c *Client) loadTLSCredentials() (credentials.TransportCredentials, error) {
@@ -46,7 +46,7 @@ func (c *Client) loadTLSCredentials() (credentials.TransportCredentials, error) 
 	config := &tls.Config{
 		RootCAs: certPool,
 	}
-	if c.Config.TrustAll {
+	if c.Config.Insecure {
 		fmt.Println("Skip verifying CA certs from server")
 		config.InsecureSkipVerify = true
 	}

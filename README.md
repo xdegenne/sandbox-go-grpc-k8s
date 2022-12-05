@@ -60,7 +60,7 @@ Loading ca cart from cert/ca-cert.pemServer response: Hello Toutou
 Soit on ne vérifie pas le certif du server :
 
 ```shell
-$ ./hello client Trust --address hello.example.com:443 --tls=true --trust-all
+$ ./hello client Trust --address hello.example.com:443 --tls=true --insecure
 Connecting to: hello.example.com:443
 Activating TLS
 Skip verifying CA certs from server
